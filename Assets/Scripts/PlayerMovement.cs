@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerMovement: MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float speed;
     [SerializeField] private LayerMask groundLayer;
@@ -10,36 +10,40 @@ public class PlayerMovement: MonoBehaviour
 
     private void Awake()
     {
-        // Get references for rigidbody and animator from object
+
         body = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
     }
 
-    private void Update() 
+    private void FixedUpdate()
     {
         float horizontalInput = Input.GetAxis("Horizontal");
-        body.linearVelocity = new Vector2(horizontalInput * speed, body.linearVelocity.y);
+        body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
+    }
+    private void Update()
+    {
+        float horizontalInput = Input.GetAxis("Horizontal");
 
-        // Flip player when moving left/right
-        if(horizontalInput > 0.01f)
+
+        if (horizontalInput > 0.01f)
             transform.localScale = new Vector3(3, 3, 3);
-        else if(horizontalInput < -0.01f)
+        else if (horizontalInput < -0.01f)
             transform.localScale = new Vector3(-3, 3, 3);
 
-        if(Input.GetKey(KeyCode.Space) && isGrounded())
+        if (Input.GetKey(KeyCode.W) && IsGrounded())
         {
             Jump();
         }
 
-        // Set animator params
+
         anim.SetBool("run", horizontalInput != 0);
-        anim.SetBool("grounded", isGrounded());
+        anim.SetBool("grounded", IsGrounded());
     }
 
     private void Jump()
     {
-        body.linearVelocity = new Vector2(body.linearVelocity.x, speed);
+        body.velocity = new Vector2(body.velocity.x, speed);
         anim.SetTrigger("jump");
     }
 
@@ -47,9 +51,18 @@ public class PlayerMovement: MonoBehaviour
     {
     }
 
-    private bool isGrounded() 
+    private bool IsGrounded()
     {
-        RaycastHit2D raycastHit = Physics2D.BoxCast(boxCollider.bounds.center, boxCollider.bounds.size, 0f, Vector2.down, 0.1f, groundLayer);
+        RaycastHit2D raycastHit = Physics2D.BoxCast(
+            boxCollider.bounds.center,
+            boxCollider.bounds.size * 0.9f,
+            0f,
+            Vector2.down,
+            0.2f,
+            groundLayer
+        );
+
         return raycastHit.collider != null;
     }
+
 }
