@@ -22,9 +22,6 @@
 # Unity Cache Server directory
 /[Cc]ache/
 
-# Unity metadata
-/[Mm]etadata/
-
 # UnityVS generated files
 *.pidb.meta
 *.unityproj.meta
@@ -51,7 +48,3 @@ Desktop.ini
 *.ipr
 .vscode/
 .mono/
-*.asset
-*.asset.meta
-*.inputactions.meta
-*.prefab.meta
