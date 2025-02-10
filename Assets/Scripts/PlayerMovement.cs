@@ -25,8 +25,7 @@ public class PlayerMovement : MonoBehaviour
         body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
     }
 
-    private void Update()
-    {
+    private void Update() {
         float horizontalInput = Input.GetAxis("Horizontal");
 
         if (horizontalInput > 0.01f)
@@ -34,16 +33,22 @@ public class PlayerMovement : MonoBehaviour
         else if (horizontalInput < -0.01f)
             transform.localScale = new Vector3(-3, 3, 3);
 
-        if (Input.GetKey(KeyCode.W) && IsGrounded())
+        bool grounded = IsGrounded();
+        if (Input.GetKey(KeyCode.W) && grounded)
         {
             Jump();
         }
 
         anim.SetBool("run", horizontalInput != 0);
-        anim.SetBool("grounded", IsGrounded());
+        anim.SetBool("grounded", grounded);
+
+        if (grounded) {
+            anim.ResetTrigger("jump");
+        }
 
         fallDetector.transform.position = new Vector2(transform.position.x, fallDetector.transform.position.y);
     }
+
 
     private void Jump() {
         body.velocity = new Vector2(body.velocity.x, speed);
@@ -73,6 +78,21 @@ public class PlayerMovement : MonoBehaviour
     }
 
     private bool IsGrounded() {
-        return IsGroundedAtPosition(transform.position);
+        bool groundedOnTerrain = IsGroundedAtPosition(transform.position);
+        bool groundedOnPlatform = false;
+
+        // Check if player is touching a platform
+        Collider2D hit = Physics2D.OverlapBox(
+            boxCollider.bounds.center, 
+            boxCollider.bounds.size * 0.9f, 
+            0f, 
+            LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
+        );
+
+        if (hit != null)
+            groundedOnPlatform = hit.CompareTag("MovingPlatform");
+
+        return groundedOnTerrain || groundedOnPlatform;
     }
+
 }

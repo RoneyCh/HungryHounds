@@ -6,6 +6,8 @@ TagManager:
   tags:
   - FallDetector
   - Checkpoint
+  - Spike
+  - MovingPlatform
   layers:
   - Default
   - TransparentFX
@@ -14,7 +16,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - 
+  - MovingPlatform
   - 
   - 
   - 
