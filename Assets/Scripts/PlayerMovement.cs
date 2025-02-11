@@ -1,12 +1,18 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerMovement : MonoBehaviour
 {
+    [Header("Movement")]
     [SerializeField] private float speed;
     [SerializeField] private LayerMask groundLayer;
     private Rigidbody2D body;
     private Animator anim;
     private BoxCollider2D boxCollider;
+
+    [Header("Player Life")]
+    public int maxLives = 3; 
+    private int currentLives;
 
     private Vector3 respawnPoint;
     public GameObject fallDetector;
@@ -17,6 +23,7 @@ public class PlayerMovement : MonoBehaviour
         anim = GetComponent<Animator>();
         boxCollider = GetComponent<BoxCollider2D>();
         respawnPoint = transform.position; // Initial respawn point
+        currentLives = maxLives;
     }
 
     private void FixedUpdate()
@@ -57,10 +64,24 @@ public class PlayerMovement : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision) {
         if (collision.CompareTag("FallDetector")) {
-            transform.position = respawnPoint;
+            LoseLife();
         }
         else if (collision.CompareTag("Checkpoint")) {
             respawnPoint = collision.transform.position;
+        }
+    }
+
+    private void LoseLife()
+    {
+        currentLives--;
+
+        if (currentLives <= 0)
+        {
+            SceneManager.LoadScene("GameOverScene", LoadSceneMode.Additive);
+        }
+        else
+        {
+            transform.position = respawnPoint;
         }
     }
 
