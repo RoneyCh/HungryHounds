@@ -11,7 +11,7 @@ public class PlayerMovement : MonoBehaviour
     private BoxCollider2D boxCollider;
 
     [Header("Player Life")]
-    public int maxLives = 3; 
+    public int maxLives = 3;
     private int currentLives;
 
     private Vector3 respawnPoint;
@@ -32,7 +32,8 @@ public class PlayerMovement : MonoBehaviour
         body.velocity = new Vector2(horizontalInput * speed, body.velocity.y);
     }
 
-    private void Update() {
+    private void Update()
+    {
         float horizontalInput = Input.GetAxis("Horizontal");
 
         if (horizontalInput > 0.01f)
@@ -46,10 +47,18 @@ public class PlayerMovement : MonoBehaviour
             Jump();
         }
 
-        anim.SetBool("run", horizontalInput != 0);
         anim.SetBool("grounded", grounded);
+        if (!grounded)
+        {
+            anim.SetBool("run", false);
+        }
+        else
+        {
+            anim.SetBool("run", horizontalInput != 0);
+        }
 
-        if (grounded) {
+        if (grounded)
+        {
             anim.ResetTrigger("jump");
         }
 
@@ -57,16 +66,20 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
-    private void Jump() {
+    private void Jump()
+    {
         body.velocity = new Vector2(body.velocity.x, speed);
         anim.SetTrigger("jump");
     }
 
-    private void OnTriggerEnter2D(Collider2D collision) {
-        if (collision.CompareTag("FallDetector")) {
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("FallDetector"))
+        {
             LoseLife();
         }
-        else if (collision.CompareTag("Checkpoint")) {
+        else if (collision.CompareTag("Checkpoint"))
+        {
             respawnPoint = collision.transform.position;
         }
     }
@@ -85,7 +98,8 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private bool IsGroundedAtPosition(Vector3 position) {
+    private bool IsGroundedAtPosition(Vector3 position)
+    {
         RaycastHit2D raycastHit = Physics2D.BoxCast(
             new Vector2(position.x, boxCollider.bounds.center.y),
             boxCollider.bounds.size * 0.9f,
@@ -98,15 +112,16 @@ public class PlayerMovement : MonoBehaviour
         return raycastHit.collider != null;
     }
 
-    private bool IsGrounded() {
+    private bool IsGrounded()
+    {
         bool groundedOnTerrain = IsGroundedAtPosition(transform.position);
         bool groundedOnPlatform = false;
 
         // Check if player is touching a platform
         Collider2D hit = Physics2D.OverlapBox(
-            boxCollider.bounds.center, 
-            boxCollider.bounds.size * 0.9f, 
-            0f, 
+            boxCollider.bounds.center,
+            boxCollider.bounds.size * 0.9f,
+            0f,
             LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
         );
 

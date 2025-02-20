@@ -8,6 +8,7 @@ TagManager:
   - Checkpoint
   - Spike
   - MovingPlatform
+  - Dog2
   layers:
   - Default
   - TransparentFX
