@@ -7,12 +7,17 @@ public class MovingPlatform : MonoBehaviour
     public float x2 = 220.5f;
 
     private int direction = 1;
-    private bool playerOnPlatform = false;
-    private Transform player;
+    private Vector3 lastPosition;
+    private Vector3 velocity;
+
+    private void Start()
+    {
+        lastPosition = transform.position;
+    }
 
     private void Update()
     {
-        // Move platform
+        // Move a plataforma
         transform.position += Vector3.right * direction * speed * Time.deltaTime;
 
         if (transform.position.x >= x2)
@@ -24,28 +29,13 @@ public class MovingPlatform : MonoBehaviour
             direction = 1;
         }
 
-        // Move player manually without setting it as a child
-        if (playerOnPlatform && player != null)
-        {
-            player.position += Vector3.right * direction * speed * Time.deltaTime;
-        }
+        // Calcula a velocidade manualmente
+        velocity = (transform.position - lastPosition) / Time.deltaTime;
+        lastPosition = transform.position;
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    public Vector3 GetPlatformVelocity()
     {
-        if (collision.CompareTag("Player"))
-        {
-            playerOnPlatform = true;
-            player = collision.transform;
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            playerOnPlatform = false;
-            player = null;
-        }
+        return velocity;
     }
 }
