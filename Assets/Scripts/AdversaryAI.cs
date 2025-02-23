@@ -104,7 +104,6 @@ public class AdversaryAI : MonoBehaviour
 
     private void Respawn()
     {
-        Debug.Log("O adversário caiu do mapa! Voltando ao último checkpoint...");
         transform.position = respawnPoint;
         rb.velocity = Vector2.zero; // Reseta a velocidade para evitar deslizes indesejados
     }
@@ -220,18 +219,18 @@ public class AdversaryAI : MonoBehaviour
             0f,
             LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
         );
-        
-        if(isGrounded) {
+
+        if (isGrounded)
+        {
             isGrounded = hitPlatform == null;
         }
-        
+
         if (hitPlatform != null)
         {
             groundedOnPlatform = hitPlatform.CompareTag("MovingPlatform");
 
             if (groundedOnPlatform)
             {
-                Debug.Log("parou o movimento");
                 rb.velocity = Vector2.zero; // Para o movimento
                 anim.SetBool("IsRunning", false); // Para a animação de corrida
             }
@@ -269,8 +268,6 @@ public class AdversaryAI : MonoBehaviour
 
     private IEnumerator RecalculatePath()
     {
-        Debug.Log("O adversário ficou preso! Tentando se mover para trás...");
-
         Vector2 moveBackDirection = -transform.right * 0.5f;
         transform.position = new Vector2(transform.position.x + moveBackDirection.x, transform.position.y);
 
@@ -314,15 +311,12 @@ public class AdversaryAI : MonoBehaviour
 
             Collider2D platformNearby = Physics2D.OverlapCircle(detectionOrigin, detectionRadius, movingPlatformLayer);
 
-            Debug.Log("Verificando plataforma...");
-
             if (platformNearby != null)
             {
                 MovingPlatform platform;
                 if (platformNearby.TryGetComponent<MovingPlatform>(out platform))
                 {
                     float distanceToPlatform = Mathf.Abs(platform.transform.position.x - transform.position.x);
-                    Debug.Log("Distância para a plataforma: " + distanceToPlatform);
 
                     if (distanceToPlatform < gapPlatform)
                     {

@@ -20,6 +20,8 @@ public class PlayerMovement : MonoBehaviour
     public GameObject fallDetector;
 
     public float distanceTraveled = 0f;
+    public LayerMask movingPlatformLayer;
+
 
     private void Awake()
     {
@@ -123,15 +125,17 @@ public class PlayerMovement : MonoBehaviour
         bool groundedOnPlatform = false;
 
         // Check if player is touching a platform
-        Collider2D hit = Physics2D.OverlapBox(
-            boxCollider.bounds.center,
+        RaycastHit2D hitPlatform = Physics2D.BoxCast(
+            new Vector2(transform.position.x, boxCollider.bounds.center.y),
             boxCollider.bounds.size * 0.9f,
             0f,
-            LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
+            Vector2.down,
+            0.2f,
+            movingPlatformLayer
         );
 
-        if (hit != null)
-            groundedOnPlatform = hit.CompareTag("MovingPlatform");
+        if (hitPlatform.collider != null)
+            groundedOnPlatform = true;
 
         return groundedOnTerrain || groundedOnPlatform;
     }
