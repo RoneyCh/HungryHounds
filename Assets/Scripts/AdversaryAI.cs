@@ -7,7 +7,7 @@ public class AdversaryAI : MonoBehaviour
     public Node currentNode;
     public List<Node> path = new List<Node>();
 
-    public float speed = 3f;
+    public float speed = 5f;
     public LayerMask groundLayer;
     public LayerMask obstacleLayer;
     public GameObject fallDetector;
@@ -25,6 +25,7 @@ public class AdversaryAI : MonoBehaviour
     private Vector3 respawnPoint;
     private MovingPlatform currentPlatform = null;
     private BoxCollider2D boxCollider;
+    public float distanceTraveled = 0f;
 
 
     private void Start()
@@ -76,6 +77,7 @@ public class AdversaryAI : MonoBehaviour
 
     private void Update()
     {
+        distanceTraveled = transform.position.x;
         bool isMoving = Mathf.Abs(transform.position.x - lastPosition.x) > 0.01f;
 
         if (isMoving)
@@ -218,8 +220,11 @@ public class AdversaryAI : MonoBehaviour
             0f,
             LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
         );
-
-        isGrounded = hitPlatform != null;
+        
+        if(isGrounded) {
+            isGrounded = hitPlatform == null;
+        }
+        
         if (hitPlatform != null)
         {
             groundedOnPlatform = hitPlatform.CompareTag("MovingPlatform");
@@ -301,7 +306,7 @@ public class AdversaryAI : MonoBehaviour
     {
         float gapSize = Mathf.Abs(target.transform.position.x - transform.position.x);
 
-        Debug.Log("gapSize: " + gapSize);
+        //Debug.Log("gapSize: " + gapSize);
         if (gapSize > gapThreshold)
         {
             Vector2 detectionOrigin = transform.position + Vector3.right * 10f;
@@ -330,6 +335,14 @@ public class AdversaryAI : MonoBehaviour
         }
 
         return true; // Caso não haja um buraco, continua andando normalmente
+    }
+
+    public System.Collections.IEnumerator ApplyTemporaryBuff(float multiplier, float duration)
+    {
+        float originalSpeed = speed;
+        speed *= multiplier;
+        yield return new WaitForSeconds(duration);
+        speed = originalSpeed;
     }
 
 

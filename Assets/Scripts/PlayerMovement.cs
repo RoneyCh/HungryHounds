@@ -4,8 +4,10 @@ using UnityEngine.SceneManagement;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
-    [SerializeField] private float speed;
+    [SerializeField] public float speed = 5f;
+    [SerializeField] private float jumpForce = 10f;
     [SerializeField] private LayerMask groundLayer;
+
     private Rigidbody2D body;
     private Animator anim;
     private BoxCollider2D boxCollider;
@@ -16,6 +18,8 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector3 respawnPoint;
     public GameObject fallDetector;
+
+    public float distanceTraveled = 0f;
 
     private void Awake()
     {
@@ -34,6 +38,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
+        distanceTraveled = transform.position.x;
         float horizontalInput = Input.GetAxis("Horizontal");
 
         if (horizontalInput > 0.01f)
@@ -68,7 +73,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        body.velocity = new Vector2(body.velocity.x, speed);
+        body.velocity = new Vector2(body.velocity.x, jumpForce);
         anim.SetTrigger("jump");
     }
 
@@ -131,4 +136,11 @@ public class PlayerMovement : MonoBehaviour
         return groundedOnTerrain || groundedOnPlatform;
     }
 
+    public System.Collections.IEnumerator ApplyTemporaryBuff(float multiplier, float duration)
+    {
+        float originalSpeed = speed;
+        speed *= multiplier;
+        yield return new WaitForSeconds(duration);
+        speed = originalSpeed;
+    }
 }
