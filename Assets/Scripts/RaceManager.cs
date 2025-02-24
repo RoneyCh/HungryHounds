@@ -1,5 +1,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 public class RaceManager : MonoBehaviour
 {
     public PlayerMovement player;
@@ -16,11 +19,8 @@ public class RaceManager : MonoBehaviour
 
     private float playerBaseSpeed;
     private float adversaryBaseSpeed;
+    public List<CompetitorBase> competitors;
 
-    [Header("Corrida")]
-    public float finishLineX = 285f;
-    private bool raceOver = false;
-    [SerializeField] private string gameSceneName = "Scene";
     private void Start()
     {
         playerBaseSpeed = player.speed;
@@ -29,22 +29,6 @@ public class RaceManager : MonoBehaviour
 
     private void Update()
     {
-        if (!raceOver)
-        {
-            // Verifica se o Player chegou na linha de chegada
-            if (player.transform.position.x >= finishLineX)
-            {
-                raceOver = true;
-                //PlayerWins();
-            }
-            // Verifica se o Adversário chegou na linha de chegada
-            else if (adversary.transform.position.x >= finishLineX)
-            {
-                raceOver = true;
-                //AdversaryWins();
-            }
-        }
-
         if (buffCooldownTimer > 0f)
         {
             buffCooldownTimer -= Time.deltaTime;
@@ -54,64 +38,40 @@ public class RaceManager : MonoBehaviour
         float playerDistance = player.distanceTraveled;
         float adversaryDistance = adversary.distanceTraveled;
 
-        float diff = Mathf.Abs(playerDistance - adversaryDistance);
+        var sorted = competitors.OrderByDescending(c => c.distanceTraveled).ToList();
+
+        CompetitorBase first = sorted[0];
+        CompetitorBase last  = sorted[sorted.Count - 1];
+
+        float diff = first.distanceTraveled - last.distanceTraveled;
 
         if (diff > distanceThreshold)
         {
             buffCooldownTimer = buffCooldownTime;
-
-            if (playerDistance > adversaryDistance)
-            {
-                Debug.Log("Aplicando Buff na IA!");
-                StartCoroutine(ApplyTemporaryDebuff(player, debuffMultiplier, effectDuration));
-                StartCoroutine(ApplyTemporaryBuff(adversary, buffMultiplier, effectDuration));
-            }
-            else
-            {
-                Debug.Log("Aplicando Buff no Player!");
-                StartCoroutine(ApplyTemporaryBuff(player, buffMultiplier, effectDuration));
-            }
+            
+            StartCoroutine(ApplyTemporaryDebuff(first, debuffMultiplier, effectDuration));
+            StartCoroutine(ApplyTemporaryBuff(last, buffMultiplier, effectDuration));
         }
     }
 
-    private System.Collections.IEnumerator ApplyTemporaryBuff(MonoBehaviour competitor, float multiplier, float duration)
+   private IEnumerator ApplyTemporaryBuff(CompetitorBase competitor, float multiplier, float duration)
     {
-        if (competitor is PlayerMovement)
-        {
-            var p = competitor as PlayerMovement;
-            float originalSpeed = p.speed;
-            p.speed *= multiplier;
-            yield return new WaitForSeconds(duration);
-            p.speed = originalSpeed;
-        }
-        else if (competitor is AdversaryAI)
-        {
-            var a = competitor as AdversaryAI;
-            float originalSpeed = a.speed;
-            a.speed *= multiplier;
-            yield return new WaitForSeconds(duration);
-            a.speed = originalSpeed;
-        }
+        float originalSpeed = competitor.speed;
+        competitor.speed = originalSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        competitor.speed = originalSpeed;
     }
 
-    private System.Collections.IEnumerator ApplyTemporaryDebuff(MonoBehaviour competitor, float multiplier, float duration)
+    private IEnumerator ApplyTemporaryDebuff(CompetitorBase competitor, float multiplier, float duration)
     {
-        if (competitor is PlayerMovement)
-        {
-            var p = competitor as PlayerMovement;
-            float originalSpeed = p.speed;
-            p.speed *= multiplier;
-            yield return new WaitForSeconds(duration);
-            p.speed = originalSpeed;
-        }
-        else if (competitor is AdversaryAI)
-        {
-            var a = competitor as AdversaryAI;
-            float originalSpeed = a.speed;
-            a.speed *= multiplier;
-            yield return new WaitForSeconds(duration);
-            a.speed = originalSpeed;
-        }
+        float originalSpeed = competitor.speed;
+        competitor.speed = originalSpeed * multiplier;
+
+        yield return new WaitForSeconds(duration);
+
+        competitor.speed = originalSpeed;
     }
 
     void PlayerWins()

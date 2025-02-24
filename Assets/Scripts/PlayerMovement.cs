@@ -1,10 +1,9 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : CompetitorBase
 {
     [Header("Movement")]
-    [SerializeField] public float speed = 5f;
     [SerializeField] private float jumpForce = 10f;
     [SerializeField] private LayerMask groundLayer;
 
@@ -19,7 +18,6 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 respawnPoint;
     public GameObject fallDetector;
 
-    public float distanceTraveled = 0f;
     public LayerMask movingPlatformLayer;
 
 
@@ -144,8 +142,10 @@ public class PlayerMovement : MonoBehaviour
     {
         float originalSpeed = speed;
         speed *= multiplier;
+        Debug.Log("Speed increased: " + speed);
         yield return new WaitForSeconds(duration);
         speed = originalSpeed;
+        Debug.Log("Speed normal: " + speed);
     }
 
     public void TakeDamage()

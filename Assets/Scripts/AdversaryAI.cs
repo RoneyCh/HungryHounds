@@ -2,12 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AdversaryAI : MonoBehaviour
+public class AdversaryAI : CompetitorBase
 {
     public Node currentNode;
     public List<Node> path = new List<Node>();
 
-    public float speed = 5f;
     [SerializeField] private float jumpForce = 10f;
 
     public LayerMask groundLayer;
@@ -27,7 +26,6 @@ public class AdversaryAI : MonoBehaviour
     private Vector3 respawnPoint;
     private MovingPlatform currentPlatform = null;
     private BoxCollider2D boxCollider;
-    public float distanceTraveled = 0f;
     private float stuckTime = 0f;
     private float lastXPosition = 0f;
 
@@ -369,5 +367,12 @@ public class AdversaryAI : MonoBehaviour
         }
 
         return stuckTime >= 1f && targetNode.transform.position.y > transform.position.y;
+    }
+
+    public void TakeDamage()
+    {
+        anim.SetTrigger("IsHurt");
+        
+       
     }
 }
