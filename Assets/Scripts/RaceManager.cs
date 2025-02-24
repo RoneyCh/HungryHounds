@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
 public class RaceManager : MonoBehaviour
 {
     public PlayerMovement player;
@@ -17,6 +17,10 @@ public class RaceManager : MonoBehaviour
     private float playerBaseSpeed;
     private float adversaryBaseSpeed;
 
+    [Header("Corrida")]
+    public float finishLineX = 285f;
+    private bool raceOver = false; 
+    [SerializeField] private string gameSceneName = "Scene"; 
     private void Start()
     {
         playerBaseSpeed = player.speed; 
@@ -25,11 +29,26 @@ public class RaceManager : MonoBehaviour
 
     private void Update()
     {
-        // Se o cooldown estiver ativo, diminuímos o timer
+        if (!raceOver)
+        {
+            // Verifica se o Player chegou na linha de chegada
+            if (player.transform.position.x >= finishLineX)
+            {
+                raceOver = true;
+                PlayerWins();
+            }
+            // Verifica se o Adversário chegou na linha de chegada
+            else if (adversary.transform.position.x >= finishLineX)
+            {
+                raceOver = true;
+                AdversaryWins();
+            }
+        }
+
         if (buffCooldownTimer > 0f)
         {
             buffCooldownTimer -= Time.deltaTime;
-            return; // não checa nada enquanto cooldown > 0
+            return; 
         }
 
         float playerDistance = player.distanceTraveled;
@@ -93,5 +112,19 @@ public class RaceManager : MonoBehaviour
             yield return new WaitForSeconds(duration);
             a.speed = originalSpeed;
         }
+    }
+
+    void PlayerWins()
+    {
+        Debug.Log("Player é o campeão!");
+        SceneManager.LoadScene("WinnerScene", LoadSceneMode.Additive);
+
+    }
+
+    void AdversaryWins()
+    {
+        Debug.Log("Adversário chegou primeiro. Game Over!");
+        SceneManager.LoadScene("GameOverScene", LoadSceneMode.Additive);
+
     }
 }
