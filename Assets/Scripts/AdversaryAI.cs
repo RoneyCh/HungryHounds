@@ -8,14 +8,16 @@ public class AdversaryAI : MonoBehaviour
     public List<Node> path = new List<Node>();
 
     public float speed = 5f;
+    [SerializeField] private float jumpForce = 10f;
+
     public LayerMask groundLayer;
     public LayerMask obstacleLayer;
+    public LayerMask playerLayer;
     public GameObject fallDetector;
-    public float gapThreshold = 20f; // Define o tamanho do buraco que ele não consegue pular sozinho
-
-    public float gapPlatform = 6.5f;
-    public LayerMask movingPlatformLayer; // Layer para detectar plataformas móveis
-
+    public float gapThresholdPlatform = 3f;
+    public LayerMask movingPlatformLayer;
+    public Transform startPointPlatform;
+    public Transform endPointPlatform;
     private Animator anim;
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -26,7 +28,12 @@ public class AdversaryAI : MonoBehaviour
     private MovingPlatform currentPlatform = null;
     private BoxCollider2D boxCollider;
     public float distanceTraveled = 0f;
+    private float stuckTime = 0f;
+    private float lastXPosition = 0f;
 
+
+    private bool waitingOnPlatform = false;
+    private bool waitingOnStartPoint = false;
 
     private void Start()
     {
@@ -47,7 +54,7 @@ public class AdversaryAI : MonoBehaviour
         {
             Node targetNode = path[0];
 
-            if (ShouldJump(targetNode) || ShouldJumpGap(targetNode))
+            if (ShouldJumpGap(targetNode) || ShouldJump(targetNode))
             {
                 Jump();
             }
@@ -66,14 +73,14 @@ public class AdversaryAI : MonoBehaviour
                 currentNode = targetNode;
                 path.RemoveAt(0);
             }
-        }
 
-        if (currentPlatform != null)
-        {
-            transform.position += currentPlatform.GetPlatformVelocity() * Time.deltaTime;
+            if (IsStuckAndTargetAbove(targetNode))
+            {
+                currentNode = FindClosestNode();
+                StartCoroutine(RecalculatePath());
+            }
         }
     }
-
 
     private void Update()
     {
@@ -95,8 +102,7 @@ public class AdversaryAI : MonoBehaviour
 
         fallDetector.transform.position = new Vector2(transform.position.x, fallDetector.transform.position.y);
 
-        // Verifica se o adversário caiu do mapa
-        if (transform.position.y < -10f) // Ajuste esse valor conforme necessário
+        if (transform.position.y < -10f)
         {
             Respawn();
         }
@@ -105,10 +111,10 @@ public class AdversaryAI : MonoBehaviour
     private void Respawn()
     {
         transform.position = respawnPoint;
-        rb.velocity = Vector2.zero; // Reseta a velocidade para evitar deslizes indesejados
+        rb.velocity = Vector2.zero;
+        currentNode = FindClosestNode();
+        StartCoroutine(RecalculatePath());
     }
-
-
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -119,6 +125,18 @@ public class AdversaryAI : MonoBehaviour
         else if (collision.CompareTag("Checkpoint"))
         {
             respawnPoint = collision.transform.position;
+            waitingOnPlatform = false;
+            waitingOnStartPoint = false;
+        }
+        else if (collision.CompareTag("StartPointPlatform"))
+        {
+            waitingOnStartPoint = true;
+        }
+        else if (collision.CompareTag("EndPointPlatform"))
+        {
+            waitingOnPlatform = false;
+            MoveTowards(path[0]);
+            Jump();
         }
     }
 
@@ -129,7 +147,7 @@ public class AdversaryAI : MonoBehaviour
             int x = 0;
             Node targetNode = path[x];
 
-            if (ShouldJump(targetNode) || ShouldJumpGap(targetNode))
+            if (ShouldJumpGap(targetNode) || ShouldJump(targetNode))
             {
                 Jump();
             }
@@ -151,12 +169,14 @@ public class AdversaryAI : MonoBehaviour
     }
     private void MoveTowards(Node target)
     {
+        if (waitingOnPlatform) return;
+
         if (!isStuck)
         {
-            if (!ShouldMoveTowardsPlatform(target))
+            if (!ShouldMoveTowardsPlatform())
             {
                 anim.SetBool("IsRunning", false);
-                return; // Aguarda até a plataforma chegar perto
+                return;
             }
 
             transform.position = Vector2.MoveTowards(transform.position,
@@ -164,6 +184,7 @@ public class AdversaryAI : MonoBehaviour
                 speed * Time.deltaTime);
         }
     }
+
 
 
     private bool ShouldJump(Node target)
@@ -174,7 +195,9 @@ public class AdversaryAI : MonoBehaviour
         }
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * Mathf.Sign(target.transform.position.x - transform.position.x), 1f, obstacleLayer);
-        if (hit.collider != null)
+        RaycastHit2D hitDog = Physics2D.Raycast(transform.position, Vector2.right, 1f, playerLayer);
+
+        if (hit.collider != null || (hitDog.collider != null && hitDog.collider.gameObject != this.gameObject))
         {
             return true;
         }
@@ -187,9 +210,9 @@ public class AdversaryAI : MonoBehaviour
 
         Vector2 groundCheckPos = new Vector2(transform.position.x + Mathf.Sign(target.transform.position.x - transform.position.x) * 0.6f, transform.position.y - 0.5f);
         RaycastHit2D groundCheck = Physics2D.Raycast(groundCheckPos, Vector2.down, 1f, groundLayer);
+        RaycastHit2D groundPlatformCheck = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, movingPlatformLayer);
 
-
-        if (!groundCheck.collider)
+        if (!groundCheck.collider && groundPlatformCheck.collider == null)
         {
             return true;
         }
@@ -199,62 +222,67 @@ public class AdversaryAI : MonoBehaviour
 
     private void Jump()
     {
-        if (isGrounded)
+        if (isGrounded && !waitingOnPlatform)
         {
-            rb.velocity = new Vector2(rb.velocity.x, speed);
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
         }
     }
+
 
     private void CheckGrounded()
     {
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, groundLayer | movingPlatformLayer);
-        isGrounded = hit.collider != null;
-
-        bool groundedOnPlatform = false;
-
-        // Check if player is touching a platform
-        Collider2D hitPlatform = Physics2D.OverlapBox(
-            boxCollider.bounds.center,
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, groundLayer);
+        RaycastHit2D hitPlatform = Physics2D.BoxCast(
+            new Vector2(transform.position.x, boxCollider.bounds.center.y),
             boxCollider.bounds.size * 0.9f,
             0f,
-            LayerMask.GetMask("MovingPlatform") // Ensure the platform layer exists
+            Vector2.down,
+            0.1f,
+            movingPlatformLayer
         );
 
-        if (isGrounded)
-        {
-            isGrounded = hitPlatform == null;
-        }
+        RaycastHit2D hitEndPointPlatform = Physics2D.BoxCast(
+            new Vector2(transform.position.x, boxCollider.bounds.center.y),
+            boxCollider.bounds.size * 0.9f,
+            0f,
+            Vector2.down,
+            0.1f,
+            LayerMask.GetMask("EndPointPlatform")
+        );
 
-        if (hitPlatform != null)
-        {
-            groundedOnPlatform = hitPlatform.CompareTag("MovingPlatform");
+        isGrounded = hit.collider != null || hitPlatform.collider != null;
 
-            if (groundedOnPlatform)
-            {
-                rb.velocity = Vector2.zero; // Para o movimento
-                anim.SetBool("IsRunning", false); // Para a animação de corrida
-            }
+        if (hitPlatform.collider != null && !waitingOnPlatform && hitEndPointPlatform.collider == null)
+        {
+            waitingOnPlatform = true;
+            rb.velocity = Vector2.zero;
         }
-        else
+        else if (hitPlatform.collider == null)
         {
             currentPlatform = null;
-            transform.parent = null; // Remove o vínculo ao sair da plataforma
+            transform.parent = null;
         }
 
+        if (waitingOnPlatform)
+        {
+            anim.SetBool("IsRunning", false);
+        }
         anim.SetBool("IsJumping", !isGrounded);
     }
+
 
 
     private void CheckIfStuck()
     {
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right, 0.6f, groundLayer);
-        if (hit)
+        if (hit.collider != null)
         {
             stuckTimer += Time.deltaTime;
             if (stuckTimer > 1.5f)
             {
+                Debug.Log("Stuck! Recalculating path...");
                 isStuck = true;
-                RecalculatePath();
+                StartCoroutine(RecalculatePath());
             }
         }
         else
@@ -268,7 +296,7 @@ public class AdversaryAI : MonoBehaviour
 
     private IEnumerator RecalculatePath()
     {
-        Vector2 moveBackDirection = -transform.right * 0.5f;
+        Vector2 moveBackDirection = -transform.right * 0.7f;
         transform.position = new Vector2(transform.position.x + moveBackDirection.x, transform.position.y);
 
         yield return new WaitForSeconds(0.3f);
@@ -299,36 +327,23 @@ public class AdversaryAI : MonoBehaviour
         return closest;
     }
 
-    private bool ShouldMoveTowardsPlatform(Node target)
+    private bool ShouldMoveTowardsPlatform()
     {
-        float gapSize = Mathf.Abs(target.transform.position.x - transform.position.x);
-
-        //Debug.Log("gapSize: " + gapSize);
-        if (gapSize > gapThreshold)
+        if (waitingOnStartPoint)
         {
-            Vector2 detectionOrigin = transform.position + Vector3.right * 10f;
-            float detectionRadius = 13f;
+            Vector2 detectionOrigin = transform.position + Vector3.right * 6f;
+            float detectionRadius = 3f;
 
             Collider2D platformNearby = Physics2D.OverlapCircle(detectionOrigin, detectionRadius, movingPlatformLayer);
 
-            if (platformNearby != null)
+            if (platformNearby != null && (platformNearby.transform.position.x - transform.position.x) > gapThresholdPlatform)
             {
-                MovingPlatform platform;
-                if (platformNearby.TryGetComponent<MovingPlatform>(out platform))
-                {
-                    float distanceToPlatform = Mathf.Abs(platform.transform.position.x - transform.position.x);
-
-                    if (distanceToPlatform < gapPlatform)
-                    {
-                        return true; // Continua andando para subir na plataforma
-                    }
-                }
-
-                return false; // Para de andar e espera a plataforma chegar
+                waitingOnStartPoint = false;
+                return true;
             }
+            return false;
         }
-
-        return true; // Caso não haja um buraco, continua andando normalmente
+        return true;
     }
 
     public System.Collections.IEnumerator ApplyTemporaryBuff(float multiplier, float duration)
@@ -339,5 +354,20 @@ public class AdversaryAI : MonoBehaviour
         speed = originalSpeed;
     }
 
+    private bool IsStuckAndTargetAbove(Node targetNode)
+    {
+        if (targetNode == null) return false;
 
+        if (Mathf.Abs(transform.position.x - lastXPosition) < 0.01f)
+        {
+            stuckTime += Time.deltaTime;
+        }
+        else
+        {
+            stuckTime = 0f;
+            lastXPosition = transform.position.x;
+        }
+
+        return stuckTime >= 1f && targetNode.transform.position.y > transform.position.y;
+    }
 }

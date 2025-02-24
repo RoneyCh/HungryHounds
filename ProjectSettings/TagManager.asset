@@ -9,16 +9,18 @@ TagManager:
   - Spike
   - MovingPlatform
   - Dog2
+  - StartPointPlatform
+  - EndPointPlatform
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Player
   - Water
   - UI
   - Ground
   - MovingPlatform
-  - 
+  - EndPointPlatform
   - 
   - 
   - 

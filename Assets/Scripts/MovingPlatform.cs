@@ -26,7 +26,6 @@ public class MovingPlatform : MonoBehaviour
             direction = 1;
         }
 
-        // Move player manually without setting it as a child
         if (playerOnPlatform && player != null)
         {
             player.position += Vector3.right * direction * speed * Time.deltaTime;
