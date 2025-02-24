@@ -147,4 +147,17 @@ public class PlayerMovement : MonoBehaviour
         yield return new WaitForSeconds(duration);
         speed = originalSpeed;
     }
+
+    public void TakeDamage()
+    {
+        anim.SetTrigger("hurt");
+        
+        currentLives--;
+        
+        if (currentLives <= 0)
+        {
+            anim.SetTrigger("death");
+            SceneManager.LoadScene("GameOverScene", LoadSceneMode.Additive);
+        }
+    }
 }

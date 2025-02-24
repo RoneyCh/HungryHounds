@@ -5,25 +5,25 @@ public class RaceManager : MonoBehaviour
     public PlayerMovement player;
     public AdversaryAI adversary;
 
-    public float distanceThreshold = 5f; 
-    public float buffMultiplier = 1.2f;  
-    public float debuffMultiplier = 1f; 
-    public float effectDuration = 3f;  
+    public float distanceThreshold = 5f;
+    public float buffMultiplier = 1.2f;
+    public float debuffMultiplier = 1f;
+    public float effectDuration = 3f;
 
     [Header("Cooldown Settings")]
     public float buffCooldownTime = 15f;
-    private float buffCooldownTimer = 0f; 
+    private float buffCooldownTimer = 0f;
 
     private float playerBaseSpeed;
     private float adversaryBaseSpeed;
 
     [Header("Corrida")]
     public float finishLineX = 285f;
-    private bool raceOver = false; 
-    [SerializeField] private string gameSceneName = "Scene"; 
+    private bool raceOver = false;
+    [SerializeField] private string gameSceneName = "Scene";
     private void Start()
     {
-        playerBaseSpeed = player.speed; 
+        playerBaseSpeed = player.speed;
         adversaryBaseSpeed = adversary.speed;
     }
 
@@ -35,20 +35,20 @@ public class RaceManager : MonoBehaviour
             if (player.transform.position.x >= finishLineX)
             {
                 raceOver = true;
-                PlayerWins();
+                //PlayerWins();
             }
             // Verifica se o Adversário chegou na linha de chegada
             else if (adversary.transform.position.x >= finishLineX)
             {
                 raceOver = true;
-                AdversaryWins();
+                //AdversaryWins();
             }
         }
 
         if (buffCooldownTimer > 0f)
         {
             buffCooldownTimer -= Time.deltaTime;
-            return; 
+            return;
         }
 
         float playerDistance = player.distanceTraveled;
@@ -61,8 +61,8 @@ public class RaceManager : MonoBehaviour
             buffCooldownTimer = buffCooldownTime;
 
             if (playerDistance > adversaryDistance)
-            {  
-                Debug.Log("Aplicando Buff na IA!");         
+            {
+                Debug.Log("Aplicando Buff na IA!");
                 StartCoroutine(ApplyTemporaryDebuff(player, debuffMultiplier, effectDuration));
                 StartCoroutine(ApplyTemporaryBuff(adversary, buffMultiplier, effectDuration));
             }
@@ -118,7 +118,6 @@ public class RaceManager : MonoBehaviour
     {
         Debug.Log("Player é o campeão!");
         SceneManager.LoadScene("WinnerScene", LoadSceneMode.Additive);
-
     }
 
     void AdversaryWins()
