@@ -6,7 +6,6 @@ using System.Linq;
 public class RaceManager : MonoBehaviour
 {
     public PlayerMovement player;
-    public AdversaryAI adversary;
 
     public float distanceThreshold = 5f;
     public float buffMultiplier = 1.2f;
@@ -16,16 +15,7 @@ public class RaceManager : MonoBehaviour
     [Header("Cooldown Settings")]
     public float buffCooldownTime = 15f;
     private float buffCooldownTimer = 0f;
-
-    private float playerBaseSpeed;
-    private float adversaryBaseSpeed;
     public List<CompetitorBase> competitors;
-
-    private void Start()
-    {
-        playerBaseSpeed = player.speed;
-        adversaryBaseSpeed = adversary.speed;
-    }
 
     private void Update()
     {
@@ -35,26 +25,23 @@ public class RaceManager : MonoBehaviour
             return;
         }
 
-        float playerDistance = player.distanceTraveled;
-        float adversaryDistance = adversary.distanceTraveled;
-
         var sorted = competitors.OrderByDescending(c => c.distanceTraveled).ToList();
 
         CompetitorBase first = sorted[0];
-        CompetitorBase last  = sorted[sorted.Count - 1];
+        CompetitorBase last = sorted[sorted.Count - 1];
 
         float diff = first.distanceTraveled - last.distanceTraveled;
 
         if (diff > distanceThreshold)
         {
             buffCooldownTimer = buffCooldownTime;
-            
+
             StartCoroutine(ApplyTemporaryDebuff(first, debuffMultiplier, effectDuration));
             StartCoroutine(ApplyTemporaryBuff(last, buffMultiplier, effectDuration));
         }
     }
 
-   private IEnumerator ApplyTemporaryBuff(CompetitorBase competitor, float multiplier, float duration)
+    private IEnumerator ApplyTemporaryBuff(CompetitorBase competitor, float multiplier, float duration)
     {
         float originalSpeed = competitor.speed;
         competitor.speed = originalSpeed * multiplier;

@@ -17,6 +17,8 @@ public class AdversaryAI : CompetitorBase
     public LayerMask movingPlatformLayer;
     public Transform startPointPlatform;
     public Transform endPointPlatform;
+    public float minSpeed = 4f;
+    public float maxSpeed = 7f;
     private Animator anim;
     private Rigidbody2D rb;
     private bool isGrounded;
@@ -38,7 +40,7 @@ public class AdversaryAI : CompetitorBase
         rb = GetComponent<Rigidbody2D>();
         if (currentNode == null)
         {
-            currentNode = FindClosestNode();
+            currentNode = AStarManager.instance.FindNearestNode(transform.position);
         }
 
         anim = GetComponent<Animator>();
@@ -48,6 +50,8 @@ public class AdversaryAI : CompetitorBase
     }
     private void FixedUpdate()
     {
+        speed = Mathf.Clamp(speed, minSpeed, maxSpeed);
+
         if (path?.Count > 0)
         {
             Node targetNode = path[0];
@@ -74,7 +78,7 @@ public class AdversaryAI : CompetitorBase
 
             if (IsStuckAndTargetAbove(targetNode))
             {
-                currentNode = FindClosestNode();
+                currentNode = AStarManager.instance.FindNearestNode(transform.position);
                 StartCoroutine(RecalculatePath());
             }
         }
@@ -110,7 +114,7 @@ public class AdversaryAI : CompetitorBase
     {
         transform.position = respawnPoint;
         rb.velocity = Vector2.zero;
-        currentNode = FindClosestNode();
+        currentNode = AStarManager.instance.FindNearestNode(transform.position);
         StartCoroutine(RecalculatePath());
     }
 
@@ -193,9 +197,8 @@ public class AdversaryAI : CompetitorBase
         }
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * Mathf.Sign(target.transform.position.x - transform.position.x), 1f, obstacleLayer);
-        RaycastHit2D hitDog = Physics2D.Raycast(transform.position, Vector2.right, 1f, playerLayer);
 
-        if (hit.collider != null || (hitDog.collider != null && hitDog.collider.gameObject != this.gameObject))
+        if (hit.collider != null)
         {
             return true;
         }
@@ -306,25 +309,6 @@ public class AdversaryAI : CompetitorBase
         }
     }
 
-    private Node FindClosestNode()
-    {
-        Node[] nodes = FindObjectsOfType<Node>();
-        Node closest = null;
-        float minDist = Mathf.Infinity;
-
-        foreach (Node node in nodes)
-        {
-            float dist = Vector2.Distance(transform.position, node.transform.position);
-            if (dist < minDist)
-            {
-                minDist = dist;
-                closest = node;
-            }
-        }
-
-        return closest;
-    }
-
     private bool ShouldMoveTowardsPlatform()
     {
         if (waitingOnStartPoint)
@@ -348,6 +332,7 @@ public class AdversaryAI : CompetitorBase
     {
         float originalSpeed = speed;
         speed *= multiplier;
+        speed = Mathf.Clamp(speed, minSpeed, maxSpeed);
         yield return new WaitForSeconds(duration);
         speed = originalSpeed;
     }
@@ -372,7 +357,13 @@ public class AdversaryAI : CompetitorBase
     public void TakeDamage()
     {
         anim.SetTrigger("IsHurt");
-        
-       
+
+    }
+    public void stopAdversary()
+    {
+        StopAllCoroutines();
+        rb.velocity = Vector2.zero;
+        anim.SetBool("IsRunning", false);
+        anim.SetBool("IsJumping", false);
     }
 }

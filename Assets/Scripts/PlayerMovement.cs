@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -28,6 +29,8 @@ public class PlayerMovement : CompetitorBase
         boxCollider = GetComponent<BoxCollider2D>();
         respawnPoint = transform.position; // Initial respawn point
         currentLives = maxLives;
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Adversary"));
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Adversary"), LayerMask.NameToLayer("Adversary"));
     }
 
     private void FixedUpdate()
@@ -142,22 +145,27 @@ public class PlayerMovement : CompetitorBase
     {
         float originalSpeed = speed;
         speed *= multiplier;
-        Debug.Log("Speed increased: " + speed);
         yield return new WaitForSeconds(duration);
         speed = originalSpeed;
-        Debug.Log("Speed normal: " + speed);
     }
 
     public void TakeDamage()
     {
         anim.SetTrigger("hurt");
-        
+
         currentLives--;
-        
+
         if (currentLives <= 0)
         {
             anim.SetTrigger("death");
             SceneManager.LoadScene("GameOverScene", LoadSceneMode.Additive);
         }
+    }
+
+    public void stopPlayer()
+    {
+        body.velocity = Vector2.zero;
+        anim.SetBool("run", false);
+        anim.SetBool("grounded", true);
     }
 }

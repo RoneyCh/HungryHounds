@@ -21520,7 +21520,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 2139961110}
-  adversary: {fileID: 926755389}
   distanceThreshold: 5
   buffMultiplier: 1.5
   debuffMultiplier: 0.8
@@ -21756,7 +21755,7 @@ GameObject:
   - component: {fileID: 926755387}
   - component: {fileID: 926755391}
   - component: {fileID: 926755392}
-  m_Layer: 3
+  m_Layer: 9
   m_Name: Dog_2
   m_TagString: Dog2
   m_Icon: {fileID: 0}
@@ -21772,7 +21771,7 @@ Transform:
   m_GameObject: {fileID: 926755385}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.33, y: -2.431, z: 0.04826315}
+  m_LocalPosition: {x: -2.78, y: -2.49, z: 0.04826315}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21908,6 +21907,8 @@ MonoBehaviour:
     m_Bits: 128
   startPointPlatform: {fileID: 0}
   endPointPlatform: {fileID: 0}
+  minSpeed: 4
+  maxSpeed: 7
 --- !u!95 &926755391
 Animator:
   serializedVersion: 5
@@ -25528,7 +25529,7 @@ GameObject:
   - component: {fileID: 1776383791}
   - component: {fileID: 1776383790}
   - component: {fileID: 1776383789}
-  m_Layer: 3
+  m_Layer: 9
   m_Name: Dog_3
   m_TagString: Dog2
   m_Icon: {fileID: 0}
@@ -25713,6 +25714,8 @@ MonoBehaviour:
     m_Bits: 128
   startPointPlatform: {fileID: 0}
   endPointPlatform: {fileID: 0}
+  minSpeed: 4
+  maxSpeed: 7
 --- !u!4 &1776383794
 Transform:
   m_ObjectHideFlags: 0
@@ -25722,7 +25725,7 @@ Transform:
   m_GameObject: {fileID: 1776383788}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -3.91, y: -2.301, z: 0.04826315}
+  m_LocalPosition: {x: -2.93, y: -2.51, z: 0.04826315}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -27561,7 +27564,7 @@ Transform:
   m_GameObject: {fileID: 2139961105}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.54, y: -2.13, z: -9}
+  m_LocalPosition: {x: -2.97, y: -2.45, z: -9}
   m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
