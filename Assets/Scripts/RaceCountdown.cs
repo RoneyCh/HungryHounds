@@ -6,16 +6,29 @@ public class RaceCountdown : MonoBehaviour
 {
     public Text countdownText;
     public GameObject player;
+    public GameObject title;
+    public GameObject button;
     public GameObject[] dogs;
 
     void Start()
     {
-        StartCoroutine(CountdownRoutine());
+        DisableMovement();
+        // StartCoroutine(CountdownRoutine());
     }
 
-    IEnumerator CountdownRoutine()
+    public void StartTimer() {
+        Debug.Log("StartTimer");
+
+        StartCoroutine(CountdownRoutine());
+    }
+    
+    public IEnumerator CountdownRoutine()
     {
+        Debug.Log("CountdownRoutine");
+
         int countdown = 3;
+        title.gameObject.SetActive(false);
+        button.gameObject.SetActive(false);
         countdownText.gameObject.SetActive(true);
 
         while (countdown > 0)
